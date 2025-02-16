@@ -6,6 +6,7 @@ import pygame
 
 if t.TYPE_CHECKING:
     from src.enums import State
+    from src.player import Player
     from src.utils import Camera
 
 # Const
@@ -33,3 +34,4 @@ next_state: State | None
 
 # Objects
 entities: list
+player: Player

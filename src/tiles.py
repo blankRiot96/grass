@@ -9,4 +9,4 @@ class Tile:
         pass
 
     def draw(self):
-        self.collider.draw()
+        self.collider.draw(fill=True, color="brown")

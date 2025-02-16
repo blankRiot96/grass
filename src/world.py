@@ -1,10 +1,14 @@
 from src import shared, utils
+from src.drone import Drone
+from src.grass import GrassBatch
 from src.player import Player
 from src.tiles import Tile
 
 type_factory = {
     "1": Player,
     "2": Tile,
+    "3": GrassBatch,
+    "4": Drone,
 }
 
 

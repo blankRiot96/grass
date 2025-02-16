@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import itertools
+import math
 import os
 import sys
 import time
@@ -617,9 +618,22 @@ class Collider:
 
         return CollisionData(colliders=snapped)
 
-    def draw(self):
+    def is_colliding(self, dx, dy) -> bool:
+        for collider in Collider.all_colliders + Collider.temp_colliders:
+            if collider is self:
+                continue
+
+            if collider.rect.move(dx, dy).colliderect(self.rect):
+                return True
+
+        return False
+
+    def draw(self, fill=False, color="red"):
         pygame.draw.rect(
-            shared.screen, "red", shared.camera.transform(self.rect), width=1
+            shared.screen,
+            color,
+            shared.camera.transform(self.rect),
+            width=not fill,
         )
 
 
@@ -640,3 +654,14 @@ class Timer:
             self.start = time.perf_counter()
             return True
         return False
+
+
+def circle_surf(radius, color):
+    surf = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+    pygame.draw.circle(surf, color, (radius, radius), radius)
+
+    return surf
+
+
+def rad_to(vec1: pygame.Vector2, vec2: pygame.Vector2):
+    return math.atan2(vec2.y - vec1.y, vec2.x - vec1.x)

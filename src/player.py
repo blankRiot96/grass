@@ -8,6 +8,7 @@ class Player:
     MAX_HORIZONTAL_SPEED = 40
 
     def __init__(self, pos):
+        shared.player = self
         self.collider = utils.Collider(pos, (shared.TILE_SIDE, shared.TILE_SIDE))
         self.gravity = utils.Gravity()
 
@@ -41,4 +42,4 @@ class Player:
         shared.camera.attach_to(self.collider.pos)
 
     def draw(self):
-        self.collider.draw()
+        self.collider.draw(fill=True)
