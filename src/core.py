@@ -29,6 +29,9 @@ class Core:
         for event in shared.events:
             if event.type == pygame.QUIT:
                 raise SystemExit
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    raise SystemExit
 
     def update(self):
         self.get_events()

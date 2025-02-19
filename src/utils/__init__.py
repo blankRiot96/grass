@@ -665,3 +665,18 @@ def circle_surf(radius, color):
 
 def rad_to(vec1: pygame.Vector2, vec2: pygame.Vector2):
     return math.atan2(vec2.y - vec1.y, vec2.x - vec1.x)
+
+
+def move_further(
+    vector: pygame.Vector2, origin_vector: pygame.Vector2, distance: float = 1000
+) -> pygame.Vector2:
+    """
+    Moves 'vector' further away from 'origin_vector' by 'distance' pixels in the same direction.
+
+    :param vector: The vector to move.
+    :param origin_vector: The reference vector from which the distance is measured.
+    :param distance: The additional distance to move.
+    :return: A new vector moved further away.
+    """
+    direction = (vector - origin_vector).normalize()  # Get unit direction
+    return vector + direction * distance  # Move further in that direction

@@ -7,194 +7,182 @@ import pygame
 from src import shared, utils
 
 
-class Line:
-    def __init__(self, rad: float, speed: float):
+class BeamTargetingData:
+    start_position = pygame.Vector2()
+    end_position = pygame.Vector2()
+
+
+class BeamSegment:
+    def __init__(self, angle: float, speed: float):
         self.speed = speed
-        self.radians = rad
-        self.surf = pygame.Surface((5, 1), pygame.SRCALPHA)
-        self.surf.fill("red")
-        self.surf = pygame.transform.rotate(self.surf, math.degrees(rad))
-        self.pos = pygame.Vector2()
-        self.first = True
+        self.angle = angle
+        self.surface = pygame.Surface((5, 1), pygame.SRCALPHA)
+        self.surface.fill("red")
+        self.surface = pygame.transform.rotate(self.surface, math.degrees(angle))
+        self.position = pygame.Vector2()
         self.alpha = 0
-        self.original_pos = pygame.Vector2()
-        self.alive = True
+        self.initial_position = pygame.Vector2()
+        self.active = True
         self.radius = 70
 
-    def draw(self, pos):
-        self.pos = pygame.Vector2(pos) - (
-            math.cos(self.radians) * self.radius,
-            math.sin(-self.radians) * self.radius,
+    def draw(self, position):
+        self.position = pygame.Vector2(position) - (
+            math.cos(self.angle) * self.radius,
+            math.sin(-self.angle) * self.radius,
         )
 
         self.radius -= 10 * shared.dt
-
         self.alpha = 400 * (1.0 - (self.radius / 70))
-        self.surf.set_alpha(self.alpha)
+        self.surface.set_alpha(self.alpha)
 
         if self.radius <= shared.TILE_SIDE / 3:
-            self.alive = False
+            self.active = False
 
-        shared.screen.blit(self.surf, shared.camera.transform(self.pos))
+        shared.screen.blit(self.surface, shared.camera.transform(self.position))
 
 
-class SingleImplode:
+class BeamImplosion:
     def __init__(self, speed):
-        n = 20
-        step = math.pi * 2 / n
-        self.lines = [Line(step * i, speed) for i in range(n)]
-        self.alive = True
+        segment_count = 20
+        step = math.pi * 2 / segment_count
+        self.segments = [BeamSegment(step * i, speed) for i in range(segment_count)]
+        self.active = True
 
-    def draw(self, pos):
-
-        for line in self.lines[:]:
-            line.draw(pos)
-
-            if not line.alive:
-                self.lines.remove(line)
-
-        self.alive = bool(self.lines)
+    def draw(self, position):
+        for segment in self.segments[:]:
+            segment.draw(position)
+            if not segment.active:
+                self.segments.remove(segment)
+        self.active = bool(self.segments)
 
 
-class HoningAnimation:
+class ChargingAnimation:
     def __init__(self):
         self.speed = 1000
-        self.implosions: list[SingleImplode] = [SingleImplode(self.speed)]
+        self.implosions: list[BeamImplosion] = [BeamImplosion(self.speed)]
         self.timer = utils.Timer(0.2)
         self.charged = False
-        self.time_passed = 0.0
-        self.start = time.perf_counter()
+        self.elapsed_time = 0.0
+        self.start_time = time.perf_counter()
 
-    def draw(self, pos):
-        self.time_passed = time.perf_counter() - self.start
-
+    def draw(self, position):
+        self.elapsed_time = time.perf_counter() - self.start_time
         if self.timer.tick():
-            self.implosions.append(SingleImplode(self.speed))
-            # if self.timer.time_to_pass > 0.1:
-            #     self.timer.time_to_pass -= 0.3
-            # else:
-            #     self.charged = True
-
-        for imp in self.implosions[:]:
-            imp.draw(pos)
-
-            if not imp.alive:
-                self.implosions.remove(imp)
+            self.implosions.append(BeamImplosion(self.speed))
+        for implosion in self.implosions[:]:
+            implosion.draw(position)
+            if not implosion.active:
+                self.implosions.remove(implosion)
 
 
-class Beam:
-    FADE_TIME = 1.0
+class EnergyBeam:
+    FADE_DURATION = 0.7
+    BEAM_WIDTH = 17.0
 
     def __init__(self):
-        self._shoot = False
+        self._active = False
         self.alpha = 255
-        self.start = time.perf_counter()
+        self.start_time = time.perf_counter()
         self.first = True
-        self.orig = pygame.Surface((1000, 20), pygame.SRCALPHA)
-        self.orig.fill("red")
-        self.rog = self.orig.copy()
-        self.rect = self.rog.get_rect()
 
     @property
-    def shoot(self) -> bool:
-        return self._shoot
+    def active(self) -> bool:
+        return self._active
 
-    @shoot.setter
-    def shoot(self, val) -> bool:
-        self.first = True
-        self.start = time.perf_counter()
-        self._shoot = val
+    @active.setter
+    def active(self, state: bool):
+        self.start_time = time.perf_counter()
+        self._active = state
 
-    def draw(self, pos, rad, right, up):
-        if not self._shoot:
+    def draw(self, start_pos, end_pos):
+        if not self._active:
+            self.first = True
             return
 
         if self.first:
-            prefix = "bottom" if up else "top"
-            suffix = "left" if right else "right"
-            word = prefix + suffix
-
-            d = {word: pos}
-
-            rect = self.orig.get_rect(**d)
-            self.rog = pygame.transform.rotate(self.orig, math.degrees(-rad))
-
-            d2 = {word: getattr(rect, word)}
-            self.rect = self.rog.get_rect(**d2)
-
+            self.start_pos = start_pos
+            self.end_pos = utils.move_further(
+                pygame.Vector2(end_pos), pygame.Vector2(start_pos)
+            )
             self.first = False
 
-        alpha = 255 * (1 - ((time.perf_counter() - self.start) / Beam.FADE_TIME))
-        self.rog.set_alpha(alpha)
+        elapsed = time.perf_counter() - self.start_time
+        width = EnergyBeam.BEAM_WIDTH * (1 - (elapsed / EnergyBeam.FADE_DURATION))
+        pygame.draw.line(
+            shared.screen,
+            (255, 0, 0),
+            shared.camera.transform(self.start_pos),
+            shared.camera.transform(self.end_pos),
+            width=int(width),
+        )
 
-        shared.screen.blit(self.rog, shared.camera.transform(self.rect))
-
-        if alpha <= 5:
-            self.first = True
-            self._shoot = False
+        if width <= 1:
+            self._active = False
 
 
 class Drone:
     SPEED = 20
     BEAM_CHARGE_TIME = 5.0
 
-    def __init__(self, pos):
+    def __init__(self, position):
         self.body = pygame.transform.scale_by(
             utils.circle_surf(shared.TILE_SIDE / 4, (150, 150, 150)), 4
         )
         self.eye_color = pygame.Color("white")
         self.eye = utils.circle_surf(shared.TILE_SIDE / 3, self.eye_color)
         self.eye_rect = self.eye.get_rect()
-        self.pos = pygame.Vector2(pos)
-        self.rect = self.body.get_rect(topleft=self.pos)
+        self.position = pygame.Vector2(position)
+        self.rect = self.body.get_rect(topleft=self.position)
 
         self.tracking = True
-        self.honing_animation = HoningAnimation()
-        self.done = False
-        self.st = time.perf_counter()
+        self.charging_animation = ChargingAnimation()
+        self.firing = False
+        self.fire_start_time = time.perf_counter()
 
-        self.beam = Beam()
+        self.beam = EnergyBeam()
 
     def update(self):
+        player_position = shared.player.collider.pos
+        distance_to_player = self.position.distance_to(player_position)
 
-        dist = self.pos.distance_to(shared.player.collider.pos)
         if self.tracking:
-            self.tracking = dist > 400
+            self.tracking = distance_to_player > 400
 
-        if self.done:
+        if self.firing:
             self.tracking = False
+            if time.perf_counter() - self.fire_start_time > 2.0:
+                self.firing = False
 
-            if time.perf_counter() - self.st > 2.0:
-                self.done = False
+        if distance_to_player > 200 and not self.firing:
+            self.position.move_towards_ip(player_position, Drone.SPEED * shared.dt)
 
-        if dist > 200 and not self.done:
-            self.pos.move_towards_ip(
-                shared.player.collider.pos, Drone.SPEED * shared.dt
-            )
+        self.rect.topleft = self.position
 
-        self.rect.topleft = self.pos
-
-        mv = 10
-        radians = utils.rad_to(self.pos, shared.player.collider.pos)
+        eye_offset = 10
+        angle_to_player = utils.rad_to(self.position, player_position)
         self.eye_rect.center = (
-            self.rect.centerx + math.cos(radians) * mv,
-            self.rect.centery + math.sin(radians) * mv,
+            self.rect.centerx + math.cos(angle_to_player) * eye_offset,
+            self.rect.centery + math.sin(angle_to_player) * eye_offset,
         )
 
-        if not self.done:
-            x = self.honing_animation.time_passed / Drone.BEAM_CHARGE_TIME
-            x = 1 - x
-            x = int(x * 255)
-            if x <= 0:
-                self.beam.shoot = True
-                self.st = time.perf_counter()
-                self.done = True
-                self.honing_animation = HoningAnimation()
-                x = 0
+        if not self.firing:
+            charge_progress = (
+                self.charging_animation.elapsed_time / Drone.BEAM_CHARGE_TIME
+            )
+            charge_progress = 1 - charge_progress
+            charge_intensity = int(charge_progress * 255)
+
+            if charge_intensity <= 0:
+                self.beam.active = True
+                self.fire_start_time = time.perf_counter()
+                self.firing = True
+                self.charging_animation = ChargingAnimation()
+                charge_intensity = 0
                 self.tracking = True
                 self.eye_color.g, self.eye_color.b = 255, 255
             else:
-                self.eye_color.g, self.eye_color.b = x, x
+                self.eye_color.g, self.eye_color.b = charge_intensity, charge_intensity
+
             self.eye = utils.circle_surf(shared.TILE_SIDE / 3, self.eye_color)
 
     def draw(self):
@@ -205,18 +193,9 @@ class Drone:
                 self.eye_rect.topleft
                 + pygame.Vector2(random.randint(1, 3), random.randint(1, 3))
                 * (not self.tracking)
-                * (not self.done)
+                * (not self.firing)
             ),
         )
-        self.beam.draw(
-            self.eye_rect.center,
-            utils.rad_to(shared.player.collider.pos, self.pos),
-            shared.player.collider.pos.x > self.pos.x,
-            shared.player.collider.pos.y < self.pos.y,
-        )
-
-        if not self.tracking and not self.done:
-            self.honing_animation.draw(self.eye_rect.center)
-            if self.honing_animation.charged:
-                self.honing_animation = HoningAnimation()
-                print("new")
+        self.beam.draw(self.eye_rect.center, shared.player.collider.rect.center)
+        if not self.tracking and not self.firing:
+            self.charging_animation.draw(self.eye_rect.center)
