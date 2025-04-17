@@ -4,36 +4,21 @@ from src.grass import GrassBatch
 from src.player import Player
 from src.tiles import Tile
 
-type_factory = {
-    "1": Player,
-    "2": Tile,
-    "3": GrassBatch,
-    "4": Drone,
-}
-
-
-def make_entities_from_txt(txt_file: str, tileside, entities):
-    with open(txt_file) as f:
-        world = f.readlines()
-
-    for i, row in enumerate(world):
-        row = row.strip("\n")
-        for j, col in enumerate(row):
-            if col == " ":
-                continue
-            pos = j * tileside, i * tileside
-            entities.append(type_factory[col](pos))
+ENTITIES: list[utils.EntityType] = [Tile, Player]
 
 
 class World:
     def __init__(self):
-        shared.entities = []
-        make_entities_from_txt("assets/map.txt", shared.TILE_SIDE, shared.entities)
+        utils.make_entities_from_tmx("assets/map.tmx", type_factory=ENTITIES)
 
     def update(self):
-        for entity in shared.entities:
-            entity.update()
+        shared.player.update()
+        for entity in ENTITIES:
+            for obj in entity.objects:
+                obj.update()
 
     def draw(self):
-        for entity in shared.entities:
-            entity.draw()
+        shared.player.draw()
+        for entity in ENTITIES:
+            for obj in entity.objects:
+                obj.draw()

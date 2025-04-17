@@ -10,7 +10,7 @@ if t.TYPE_CHECKING:
     from src.utils import Camera
 
 # Const
-TILE_SIDE = 32
+TILE_SIDE = 16
 WORLD_GRAVITY = 100
 MAX_FALL_VELOCITY = 300
 
@@ -23,6 +23,8 @@ camera: Camera
 events: list[pygame.event.Event]
 mouse_pos: pygame.Vector2
 mouse_press: tuple[int, ...]
+mjr: tuple[int, ...]
+mjp: tuple[int, ...]
 keys: list[bool]
 kp: list[bool]
 kr: list[bool]
@@ -33,5 +35,4 @@ clock: pygame.Clock
 next_state: State | None
 
 # Objects
-entities: list
 player: Player

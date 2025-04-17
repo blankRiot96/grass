@@ -11,7 +11,7 @@ class Core:
 
     def win_init(self):
         pygame.init()
-        shared.screen = pygame.display.set_mode((1100, 650))
+        shared.screen = pygame.display.set_mode((600, 300), pygame.SCALED)
         shared.srect = shared.screen.get_rect()
         shared.clock = pygame.Clock()
 
@@ -23,6 +23,8 @@ class Core:
         shared.kp = pygame.key.get_just_pressed()
         shared.kr = pygame.key.get_just_released()
         shared.mouse_pos = pygame.Vector2(pygame.mouse.get_pos())
+        shared.mjr = pygame.mouse.get_just_released()
+        shared.mjp = pygame.mouse.get_just_pressed()
         shared.mouse_press = pygame.mouse.get_pressed()
 
     def check_for_exit(self):

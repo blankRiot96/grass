@@ -1,3 +1,5 @@
+import typing as t
+
 import pygame
 
 from src import shared, utils
@@ -6,6 +8,8 @@ from src import shared, utils
 class Player:
     JUMP_VELOCITY = -150
     MAX_HORIZONTAL_SPEED = 40
+
+    objects: list[t.Self] = []
 
     def __init__(self, pos):
         shared.player = self
@@ -39,7 +43,7 @@ class Player:
             dx = 0
 
         self.collider.pos += dx, dy
-        shared.camera.attach_to(self.collider.pos)
+        shared.camera.attach_to(self.collider.pos, smoothness_factor=1)
 
     def draw(self):
         self.collider.draw(fill=True)
