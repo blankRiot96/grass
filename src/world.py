@@ -1,10 +1,9 @@
 from src import shared, utils
-from src.drone import Drone
-from src.grass import GrassBatch
+from src.coins import Coin
 from src.player import Player
 from src.tiles import Tile
 
-ENTITIES: list[utils.EntityType] = [Tile, Player]
+ENTITIES: list[utils.EntityType] = [Tile, Player, Coin]
 
 
 class World:

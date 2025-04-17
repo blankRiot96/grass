@@ -10,11 +10,13 @@ class Player:
     MAX_HORIZONTAL_SPEED = 40
 
     objects: list[t.Self] = []
+    map_image: pygame.Surface | None = None
 
     def __init__(self, pos):
         shared.player = self
         self.collider = utils.Collider(pos, (shared.TILE_SIDE, shared.TILE_SIDE))
         self.gravity = utils.Gravity()
+        self.coins_collected = 0
 
     def update(self):
         dx, dy = 0, 0

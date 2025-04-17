@@ -1,13 +1,21 @@
 import typing as t
 
+import pygame
 import pytmx
 
 
 class Entity(t.Protocol):
     objects: list
+    map_image: pygame.Surface
 
     def __init__(self, pos: tuple[int, int]) -> None:
         super().__init__()
+
+    def update(self):
+        pass
+
+    def draw(self):
+        pass
 
 
 EntityType: t.TypeAlias = t.Type[Entity]
@@ -26,4 +34,5 @@ def make_entities_from_tmx(tmx_file_path, type_factory: list[t.Type[Entity]]):
                     continue
 
                 entity_type = inverted_map[properties["type"]]
+                entity_type.map_image = image.subsurface(image.get_bounding_rect())
                 entity_type((x * tiled_map.tilewidth, y * tiled_map.tileheight))
