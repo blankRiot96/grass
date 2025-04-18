@@ -1,3 +1,5 @@
+import math
+
 import pygame
 import pygame.gfxdraw
 
@@ -43,12 +45,20 @@ class PlayerGunCooldownIndicator:
                 int(shared.player.collider.pos.y - 10),
             )
         )
-        pygame.draw.circle(
+        rect = pygame.draw.circle(
             shared.screen,
             shared.PALETTE["grey"],
             pos,
             PlayerGunCooldownIndicator.RADIUS,
         )
+        # pygame.draw.arc(
+        #     shared.screen,
+        #     "white",
+        #     rect.inflate(-1, -1),
+        #     0,
+        #     shared.player.gun.cooldown.amount_cooled * (math.pi * 2),
+        #     PlayerGunCooldownIndicator.RADIUS,
+        # )
         pygame.gfxdraw.arc(
             shared.screen,
             int(pos.x),

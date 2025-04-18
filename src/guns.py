@@ -24,7 +24,7 @@ class StarShooter:
                     #     pygame.Vector2(shared.camera.transform(shared.mouse_pos)),
                     # ),
                     50,
-                    1.0,
+                    3.0,
                 )
             )
             self.cooldown.start()

@@ -8,6 +8,7 @@ from src import shared, utils
 
 class StarProjectile:
     MAX_TAIL_SIZE = 30
+    MAX_SIZE_SECONDS = 1.0
 
     def __init__(self, pos, radians, speed, seconds) -> None:
         self.pos = pygame.Vector2(pos)
@@ -23,15 +24,15 @@ class StarProjectile:
         self.dy = math.sin(self.radians) * self.speed
 
     @classmethod
-    def from_mouse(cls, pos, velocity, decel):
+    def from_mouse(cls, pos, speed, seconds):
         return cls(
             pos,
             math.atan2(
                 (shared.mouse_pos[1] + shared.camera.offset.y) - pos[1],
                 (shared.mouse_pos[0] + shared.camera.offset.x) - pos[0],
             ),
-            velocity,
-            decel,
+            speed,
+            seconds,
         )
 
     def update(self):
@@ -46,9 +47,10 @@ class StarProjectile:
             self.alive = False
 
     def points(self) -> list[pygame.typing.Point]:
-        tail_size = StarProjectile.MAX_TAIL_SIZE * (
-            time.perf_counter() - self.start / self.seconds
+        ratio = min(
+            1, (time.perf_counter() - self.start) / StarProjectile.MAX_SIZE_SECONDS
         )
+        tail_size = StarProjectile.MAX_TAIL_SIZE * ratio
 
         head = self.pos.copy()
         tail = utils.move_towards_rad(head, -self.direction, tail_size)
