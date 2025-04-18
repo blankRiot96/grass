@@ -13,6 +13,10 @@ if t.TYPE_CHECKING:
 TILE_SIDE = 16
 WORLD_GRAVITY = 100
 MAX_FALL_VELOCITY = 300
+PALETTE: dict[t.Literal["purple", "grey"], str] = {
+    "grey": "#393939",
+    "purple": "#725956",
+}
 
 # Canvas
 screen: pygame.Surface

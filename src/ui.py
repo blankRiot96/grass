@@ -1,4 +1,5 @@
 import pygame
+import pygame.gfxdraw
 
 from src import shared, utils
 from src.coins import Coin
@@ -23,18 +24,53 @@ class CoinCounter:
         text_rect = text_surf.get_rect()
         text_rect.midleft = self.image_rect.midright + pygame.Vector2(5, 1)
 
-        # pygame.draw.rect(shared.screen, "red", self.image_rect, width=1)
-        # pygame.draw.rect(shared.screen, "red", text_rect, width=1)
-
         shared.screen.blit(text_surf, text_rect)
+
+
+class PlayerGunCooldownIndicator:
+    RADIUS = 5
+
+    def __init__(self) -> None:
+        pass
+
+    def update(self):
+        pass
+
+    def draw(self):
+        pos = shared.camera.transform(
+            (
+                int(shared.player.collider.pos.x - 10),
+                int(shared.player.collider.pos.y - 10),
+            )
+        )
+        pygame.draw.circle(
+            shared.screen,
+            shared.PALETTE["grey"],
+            pos,
+            PlayerGunCooldownIndicator.RADIUS,
+        )
+        pygame.gfxdraw.arc(
+            shared.screen,
+            int(pos.x),
+            int(pos.y),
+            PlayerGunCooldownIndicator.RADIUS,
+            0,
+            int(shared.player.gun.cooldown.amount_cooled * 360),
+            (255, 255, 255),
+        )
 
 
 class HUD:
     def __init__(self) -> None:
         self.coin_counter = CoinCounter((10, 10))
+        self.cooldown_indicator = PlayerGunCooldownIndicator()
 
     def update(self):
         self.coin_counter.update()
+        self.cooldown_indicator.update()
 
     def draw(self):
         self.coin_counter.draw()
+
+        if shared.player.gun.cooldown.is_cooling_down:
+            self.cooldown_indicator.draw()

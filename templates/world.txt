@@ -21,4 +21,3 @@ class World:
         for entity in ENTITIES:
             for obj in entity.objects:
                 obj.draw()
-        shared.player.gun.draw()

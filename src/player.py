@@ -3,6 +3,7 @@ import typing as t
 import pygame
 
 from src import shared, utils
+from src.guns import StarShooter
 
 
 class Player:
@@ -10,15 +11,18 @@ class Player:
     MAX_HORIZONTAL_SPEED = 40
 
     objects: list[t.Self] = []
-    map_image: pygame.Surface | None = None
+    map_image: pygame.Surface
 
     def __init__(self, pos):
         shared.player = self
         self.collider = utils.Collider(pos, (shared.TILE_SIDE, shared.TILE_SIDE))
         self.gravity = utils.Gravity()
+        self.gun = StarShooter()
         self.coins_collected = 0
 
     def update(self):
+        self.gun.update()
+
         dx, dy = 0, 0
         self.gravity.update()
 
@@ -48,4 +52,6 @@ class Player:
         shared.camera.attach_to(self.collider.pos, smoothness_factor=1)
 
     def draw(self):
-        self.collider.draw(fill=True)
+        shared.screen.blit(
+            Player.map_image, shared.camera.transform(self.collider.rect)
+        )

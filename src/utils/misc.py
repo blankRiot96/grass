@@ -7,6 +7,16 @@ from pathlib import Path
 import pygame
 
 
+def move_towards_rad(
+    vec: pygame.Vector2, radians: float, dist: float
+) -> pygame.Vector2:
+    v = vec.copy()
+    v.x += math.cos(radians) * dist
+    v.y += math.sin(-radians) * dist
+
+    return v
+
+
 def circle_surf(radius, color):
     surf = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
     pygame.draw.circle(surf, color, (radius, radius), radius)
@@ -69,7 +79,7 @@ def load_font(name: str | None, size: int) -> pygame.Font:
 
 class Timer:
     """
-    Class to check if time has passed.
+    Class to check if time has passed. Repeatedly.
     """
 
     def __init__(self, time_to_pass: float):
@@ -84,3 +94,32 @@ class Timer:
             self.start = time.perf_counter()
             return True
         return False
+
+
+class CooldownTimer:
+    """
+    Operates once and then needs to be started again explicitely
+    """
+
+    def __init__(self, seconds: float) -> None:
+        self.seconds = seconds
+        self.is_cooling_down = False
+        self.start_time = None
+        self.amount_cooled = 1.0
+
+    def start(self):
+        self.is_cooling_down = True
+        self.amount_cooled = 0.0
+        self.start_time = time.perf_counter()
+
+    def update(self):
+        if not self.is_cooling_down:
+            return
+
+        time_passed = time.perf_counter() - self.start_time  # type: ignore
+        self.amount_cooled = time_passed / self.seconds
+
+        if time_passed >= self.seconds:
+            self.is_cooling_down = False
+            self.amount_cooled = 1.0
+            self.start_time = None

@@ -41,7 +41,7 @@ class Core:
         self.state_manager.update()
 
     def draw(self):
-        shared.screen.fill((13, 5, 67))
+        shared.screen.fill(shared.PALETTE["purple"])
         self.state_manager.draw()
         pygame.display.flip()
 
